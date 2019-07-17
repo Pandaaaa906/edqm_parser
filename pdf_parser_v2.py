@@ -1,17 +1,14 @@
 # coding=utf-8
-from string import ascii_letters
-
-from pdfminer.pdfparser import PDFParser
-from pdfminer.pdfdocument import PDFDocument, PDFNoOutlines, PDFTextExtractionNotAllowed
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.converter import PDFPageAggregator
-from pdfminer.pdfdevice import PDFDevice
-from pdfminer.layout import LAParams, LTTextBox, LTTextLine, LTFigure, LTImage, LTRect, LTChar, LTTextBoxHorizontal
-from pdfminer.converter import PDFPageAggregator
-from utils import Document, Section
 from collections import Iterable
 from functools import cmp_to_key
+from string import ascii_letters
+
+from pdfminer.converter import PDFPageAggregator
+from pdfminer.layout import LAParams, LTChar
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter, PDFTextExtractionNotAllowed
+from pdfminer.pdfparser import PDFParser, PDFDocument
+
+from utils import Document, Section
 
 file_path = r"drug part_European Pharmacopoeia 8.0.pdf"
 file_path = r"1384-1386.pdf"
@@ -19,9 +16,12 @@ file_path = r"1384-1386.pdf"
 fp = open(file_path, 'rb')
 parser = PDFParser(fp)
 laparams = LAParams(line_overlap=0.1, char_margin=1.0, line_margin=0.1)
-document = PDFDocument(parser)
+document = PDFDocument()
+parser.set_document(document)
+document.set_parser(parser)
+# document = PDFDocument(parser)
 # 检查文件是否允许文本提取
-if not document.is_extractable:
+if document.encryption:
     raise PDFTextExtractionNotAllowed
 
 # 创建一个PDF资源管理器对象来存储共享资源
@@ -75,7 +75,7 @@ last_char = None
 i = 1
 # 处理文档当中的每个页面
 print("start extracting pdf")
-for page in PDFPage.create_pages(document):
+for page in document.get_pages():
     interpreter.process_page(page)
     layout = device.get_result()
 
@@ -90,7 +90,6 @@ for page in PDFPage.create_pages(document):
 
         if last_char is None:
             line += char.get_text()
-        # elif abs(last_char.y0 - char.y0) < paragraph_height:
 
         # 如果是同一行
         elif abs(last_char.y0 - char.y0) < last_char.height * paragraph_space_ratio:
@@ -104,7 +103,6 @@ for page in PDFPage.create_pages(document):
 
             line += char.get_text()
         else:
-            # print line, last_char.x0, last_char.y0, char.x0, char.y0
             if "MinionPro-Bold" in last_char.fontname:
                 if int(last_char.size) == 13:
                     if 290 < last_char.x0 < 300 or 540 < last_char.x0 < 550:
@@ -156,3 +154,5 @@ for char in figure:
         print char.get_text(), char.x0, char.y0
     last_char = char
 '''
+if __name__ == '__main__':
+    pass
