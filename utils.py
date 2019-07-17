@@ -10,6 +10,7 @@ env = Environment(
 
 class Document(dict):
     def __init__(self, code):
+        super().__init__()
         self.code = code
         self['contents'] = []
         self.template = env.get_template('template.html')
@@ -50,6 +51,7 @@ class Document(dict):
 
 class Section(dict):
     def __init__(self, subtitle):
+        super().__init__()
         self.subtitle = subtitle
         self['contents'] = []
 
