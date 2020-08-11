@@ -5,20 +5,21 @@ from string import ascii_letters
 
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import LAParams, LTChar
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter, PDFTextExtractionNotAllowed
-from pdfminer.pdfparser import PDFParser, PDFDocument
+from pdfminer.pdfdocument import PDFDocument, PDFTextExtractionNotAllowed
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.pdfpage import PDFPage
+from pdfminer.pdfparser import PDFParser
 
 from utils import Document, Section
 
 file_path = r"drug part_European Pharmacopoeia 8.0.pdf"
-file_path = r"1384-1386.pdf"
+# file_path = r"1384-1386.pdf"
 
 fp = open(file_path, 'rb')
 parser = PDFParser(fp)
 laparams = LAParams(line_overlap=0.1, char_margin=1.0, line_margin=0.1)
-document = PDFDocument()
+document = PDFDocument(parser)
 parser.set_document(document)
-document.set_parser(parser)
 # document = PDFDocument(parser)
 # 检查文件是否允许文本提取
 if document.encryption:
@@ -75,7 +76,7 @@ last_char = None
 i = 1
 # 处理文档当中的每个页面
 print("start extracting pdf")
-for page in document.get_pages():
+for page in PDFPage.get_pages(fp):
     interpreter.process_page(page)
     layout = device.get_result()
 
@@ -112,7 +113,7 @@ for page in document.get_pages():
                             try:
                                 current_doc.render()
                             except BaseException as e:
-                                print("error", e)
+                                print("error", current_doc.title, e)
                         # 新建文档
                         current_doc = Document(line)
 

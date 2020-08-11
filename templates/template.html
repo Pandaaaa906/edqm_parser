@@ -8,12 +8,12 @@
 <h1>{{title}}</h1>
 {% for item in contents %}
 <div id="{{item.subtitle}}">
-    <p class="subtitle">{{item.subtitle}}</p>
-    <p class="content">
+    <h3 class="subtitle">{{item.subtitle}}</h3>
+    <div class="content">
         {% for content in item.contents %}
-        {{content}}</br>
+            <p>{{content}}</p>
         {% endfor %}
-    </p>
+    </div>
 </div>
 {% endfor %}
 </body>
