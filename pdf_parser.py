@@ -1,10 +1,11 @@
 # coding=utf-8
-from collections import Iterable
+from typing import Iterable, Union
 from functools import cmp_to_key
 from string import ascii_letters
 
+from loguru import logger
 from pdfminer.converter import PDFPageAggregator
-from pdfminer.layout import LAParams, LTChar
+from pdfminer.layout import LAParams, LTChar, LTImage, LTContainer, LTPage, LTComponent
 from pdfminer.pdfdocument import PDFDocument, PDFTextExtractionNotAllowed
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfpage import PDFPage
@@ -12,7 +13,7 @@ from pdfminer.pdfparser import PDFParser
 
 from utils import Document, Section
 
-file_path = r"drug part_European Pharmacopoeia 8.0.pdf"
+file_path = r"drug_part_European Pharmacopoeia 10.0.pdf"
 # file_path = r"1384-1386.pdf"
 
 fp = open(file_path, 'rb')
@@ -32,6 +33,16 @@ rsrcmgr = PDFResourceManager()
 device = PDFPageAggregator(rsrcmgr, laparams=laparams)
 # 创建一个PDF解析器对象
 interpreter = PDFPageInterpreter(rsrcmgr, device)
+
+
+def get_image(layout_object: LTComponent):
+    if isinstance(layout_object, LTImage):
+        return layout_object
+    if isinstance(layout_object, LTContainer):
+        for child in layout_object:
+            return get_image(child)
+    else:
+        return None
 
 
 def char_cmp(char1, char2):
@@ -75,11 +86,12 @@ line = ""
 last_char = None
 i = 1
 # 处理文档当中的每个页面
-print("start extracting pdf")
+logger.info("start extracting pdf")
 for page in PDFPage.get_pages(fp):
     interpreter.process_page(page)
     layout = device.get_result()
 
+    images = list(filter(bool, map(get_image, layout)))
     raw_chars = extract_char(layout)
     chars = sorted(raw_chars, key=cmp_to_key(char_cmp))
     for char in chars:
@@ -113,7 +125,7 @@ for page in PDFPage.get_pages(fp):
                             try:
                                 current_doc.render()
                             except BaseException as e:
-                                print("error", current_doc.title, e)
+                                logger.warning(f"error: {current_doc.title}, {e}")
                         # 新建文档
                         current_doc = Document(line)
 
@@ -132,7 +144,7 @@ for page in PDFPage.get_pages(fp):
                 elif current_section is not None:
                     current_section.add_contents(line)
                 else:
-                    print("Error", current_doc)
+                    logger.warning("Error", current_doc)
                     print(line, last_char.x0)
             # print line
             # 新行
