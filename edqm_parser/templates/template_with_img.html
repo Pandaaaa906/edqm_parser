@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{doc.title}}</title>
+</head>
+<body>
+<h1>{{doc.title}}</h1>
+{% for item in doc.contents %}
+<div id="{{ item.id if item.id is not none else item.subtitle}}">
+    <h3 class="subtitle">{{item.subtitle}}</h3>
+    <div class="content">
+        {% for content in item.contents %}
+            {% if content|is_paragraph %}
+                <p>{{content.content}}</p>
+            {% elif content|is_image %}
+                <img src="{{ content.src }}" alt="n/a"/>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+</body>
+</html>

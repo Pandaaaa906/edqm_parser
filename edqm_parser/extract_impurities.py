@@ -4,14 +4,14 @@ from pathlib import Path
 from loguru import logger
 from parsel import Selector
 
-from models import Session, Impurity
+from .models import Session, Impurity
 
-root = Path('./html')
+root = Path('../html')
 p = re.compile(r'(?P<index>[A-Z])\.\s*(?P<chemical_name>.+)[,.]')
 p_synonym = re.compile(r'(?P<chemical_name>.+) \((?P<synonyms>[^()]+)\)$')
 
 
-def main():
+def main(ep_version="10"):
     logger.info('starting')
 
     db = Session()
@@ -31,7 +31,7 @@ def main():
                 synonyms = m_synonym['synonyms']
             d = {
                 'reference': 'ep',
-                'version': '10',
+                'version': ep_version,
                 'api_name': api_name,
                 'impurity_name': f'{api_name} EP Impurity {m["index"]}',
                 'raw_chemical_name': raw_chemical_name,
