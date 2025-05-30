@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 from typing import Optional, List, Tuple, Union
 
 from loguru import logger
@@ -49,8 +50,11 @@ def get_upper_nearest_image(images: List[LTImage], x: float, y: float, mid: floa
         img_idx += 1
 
 
-def extract_edqm(fp: str):
-    f = open(fp, 'rb')
+def extract_edqm(fp: Union[Path, str], /, output_root: Path = Path("html")):
+    if isinstance(fp, str):
+        fp = Path(fp)
+    logger.info(f"start processing {fp.name}")
+    f = fp.open('rb')
     parser = PDFParser(f)
     document = PDFDocument(parser)
     parser.set_document(document)
@@ -103,7 +107,7 @@ def extract_edqm(fp: str):
                         if current_doc is not None:
                             current_doc.add_content(current_section)
                             try:
-                                current_doc.render()
+                                current_doc.render(output_root)
                                 pass
                             except BaseException as e:
                                 logger.warning(f"error: {current_doc.title}, {e}")
@@ -128,9 +132,11 @@ def extract_edqm(fp: str):
             l_idx += 1
             pass
         pass
+    logger.info(f"finish processing {fp.name}")
 
 
 if __name__ == '__main__':
+    output_root = Path('html')
     file_path = r"drug_part_European Pharmacopoeia 10.0.pdf"
-    extract_edqm(file_path)
+    extract_edqm(file_path, output_root=output_root)
     pass

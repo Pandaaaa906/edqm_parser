@@ -83,11 +83,12 @@ class Document:
 
     @property
     def normalized_title(self):
-        return self.title.translate(str.maketrans('', '', '\n'))
+        return self.title.translate(str.maketrans('', '', '\n\\'))
 
-    def render(self, root="html"):
+    def render(self, root: Union[str, Path]):
+        if isinstance(root, str):
+            root = Path(root)
         fname = f"{self.normalized_title}.html"
-        root = Path(root)
         root.mkdir(exist_ok=True)
         fp = root / fname
         with fp.open('wb') as f:
