@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from jinja2 import Environment, PackageLoader, select_autoescape, FileSystemLoader
-from os import path
+from pathlib import Path
+
+from jinja2 import Environment, select_autoescape, FileSystemLoader
 
 env = Environment(
     loader=FileSystemLoader('templates'),
@@ -9,7 +10,7 @@ env = Environment(
 
 
 class Document(dict):
-    def __init__(self, code):
+    def __init__(self, code: str):
         super().__init__()
         self.code = code
         self['contents'] = []
@@ -43,9 +44,11 @@ class Document(dict):
         return self.template.render(**self).encode('u8')
 
     def render(self, root="html"):
-        fname = self.title+".html"
-        fp = path.join(root, fname)
-        with open(fp, 'wb') as f:
+        fname = f"{self.title}.html"
+        root = Path(root)
+        root.mkdir(exist_ok=True)
+        fp = root / fname
+        with fp.open('wb') as f:
             f.write(self.html)
 
 
